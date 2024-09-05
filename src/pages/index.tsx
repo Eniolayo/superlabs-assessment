@@ -2,12 +2,14 @@ import { Icon } from "@iconify/react";
 import React, { useState } from "react";
 
 import BottomDrawer from "@/components/BottomDrawer";
-import Coin, { CoinProps } from "@/components/Coin";
-import { useToast } from "@/components/Toast/ToastContext";
-import { useCoinManagement } from "@/utils/useCoinManagement";
-import { useScreenDimensions } from "@/utils/useScreenDimensions";
+import Coin from "@/components/Coin";
+import { useCoinManagement } from "@/hooks/useCoinManagement";
+import { useGameActions } from "@/hooks/useGameActions";
+import { useScreenDimensions } from "@/hooks/useScreenDimensions";
 
 function CoinAnimation() {
+  const [isLoading, setIsLoading] = useState(true);
+
   const {
     coins,
     setCoins,
@@ -23,92 +25,42 @@ function CoinAnimation() {
 
   const screenDimensions = useScreenDimensions();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const { addToast } = useToast();
 
   const handleOpenDrawer = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setIsDrawerOpen(true);
   };
+  React.useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setIsLoading(false);
+    }, 1500);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
   const handleCloseDrawer = () => setIsDrawerOpen(false);
-  const coinSize = 32;
-  const padding = {
-    inline: 20,
-    block: 20,
-  };
 
-  const buySpeedBoost = () => {
-    const cost = 10; // Define the cost in points
-    const speedReduction = 500; // Define how much speed to reduce (1 second)
-    if (totalPoints >= cost && rechargingSpeed > speedReduction) {
-      setTotalPoints(prevPoints => prevPoints - cost);
-      setRechargingSpeed(prevSpeed => prevSpeed - speedReduction);
-      addToast({
-        message: "Speed Boost Activated! 🚀 Charge speed increased!",
-        type: "success",
-      });
-    } else {
-      addToast({
-        message: "Not enough points or speed cannot be reduced further.",
-        type: "error",
-      });
-    }
-  };
-  // Function to buy more max coins using points
-  const buyMoreCoins = () => {
-    const cost = 20; // Cost per additional coin
-    if (totalPoints >= cost) {
-      setTotalPoints(prevPoints => prevPoints - cost);
-      setMaxCoins(prevMaxCoins => prevMaxCoins + 25);
-      addToast({
-        message: "Coins Acquired! 🪙 More slots available!",
-        type: "success",
-      });
-    } else {
-      addToast({
-        message: "Not enough points.",
-        type: "error",
-      });
-    }
-  };
-  const handleTap = () => {
-    if (coins.length < maxCoins) {
-      const newCoin: CoinProps = {
-        id: Date.now(),
-        x:
-          padding.inline +
-          Math.random() *
-            (screenDimensions.width - coinSize - 2 * padding.inline),
-        y:
-          padding.block +
-          Math.random() *
-            (screenDimensions.height - coinSize - 5 * padding.block),
-      };
+  const { buySpeedBoost, buyMoreCoins, handleTap } = useGameActions(
+    totalPoints,
+    setTotalPoints,
+    rechargingSpeed,
+    setRechargingSpeed,
+    maxCoins,
+    setMaxCoins,
+    coins,
+    setCoins,
+    isRemovingCoins,
+    setIsRemovingCoins,
+    screenDimensions
+  );
 
-      // Ensure the coin doesn't go off the screen horizontally
-      newCoin.x = Math.max(
-        padding.inline,
-        Math.min(newCoin.x, screenDimensions.width - coinSize - padding.inline)
-      );
-
-      // Ensure the coin doesn't go off the screen vertically
-      newCoin.y = Math.max(
-        padding.block,
-        Math.min(newCoin.y, screenDimensions.height - coinSize - padding.block)
-      );
-
-      setCoins(prevCoins => [...prevCoins, newCoin]);
-    }
-
-    if (!isRemovingCoins) {
-      setIsRemovingCoins(false);
-    }
-
-    setTimeout(() => {
-      setIsRemovingCoins(true); // Start removing coins after user stops tapping
-    }, 1000);
-  };
-
-  return (
+  return isLoading ? (
+    <div className="absolute inset-0 flex h-screen w-full touch-none items-center justify-center bg-gradient-to-t from-[#4A148C] to-[#E040FB]">
+      <Icon
+        icon="fa6-solid:spinner"
+        className="relative z-50 animate-spin text-5xl text-white"
+      />
+    </div>
+  ) : (
     <div
       className="relative flex h-screen w-full touch-none items-center justify-center bg-gradient-to-t from-[#4A148C] to-[#E040FB] text-white"
       onClick={handleTap}
