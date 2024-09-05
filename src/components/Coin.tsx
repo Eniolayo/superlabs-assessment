@@ -1,3 +1,4 @@
+import { Icon } from "@iconify/react";
 import { animated, useSpring } from "@react-spring/web";
 
 export type CoinProps = {
@@ -18,7 +19,7 @@ const Coin: React.FC<CoinProps> = ({ x, y }) => {
       style={{ ...props, userSelect: "none" }}
       className="absolute z-20 text-4xl"
     >
-      🪙
+      <Icon icon="noto:coin" />
     </animated.div>
   );
 };

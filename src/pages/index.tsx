@@ -62,7 +62,7 @@ function CoinAnimation() {
     </div>
   ) : (
     <div
-      className="relative flex h-screen w-full touch-none items-center justify-center bg-gradient-to-t from-[#4A148C] to-[#E040FB] text-white"
+      className="relative flex h-[100dvh] w-full touch-none items-center justify-center bg-gradient-to-t from-[#4A148C] to-[#E040FB] text-white"
       onClick={handleTap}
     >
       {coins.map(coin => (
@@ -79,7 +79,7 @@ function CoinAnimation() {
       <div className="absolute inset-x-4 bottom-2 z-50 flex items-center justify-between">
         <div
           onClick={e => e.stopPropagation()}
-          className="flex w-fit items-end rounded border border-white/40 px-1 text-center text-sm"
+          className="flex w-fit items-end rounded border border-white/40 p-1 text-center text-sm"
         >
           <p
             className=""
@@ -87,7 +87,7 @@ function CoinAnimation() {
               userSelect: "none",
             }}
           >
-            <span className="mx-auto block">🪙</span>
+            <Icon icon="noto:coin" className="mx-auto block" />
             <span className="font-semibold">Coins:</span> {coins.length} /{" "}
             {maxCoins}
           </p>
