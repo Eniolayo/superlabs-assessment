@@ -1,40 +1,90 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Project Description
 
-## Getting Started
+This is a superlab interview assessment project which involves implementing a visually appealing and interactive coin collection game. Users tap the screen to generate coins, which animate realistically using the `@react-spring/web` library. The game tracks points earned and allows users to spend points on upgrades like increased coin collection speed and additional coin slots.
 
-First, run the development server:
+## Installation and Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Prerequisites:**
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+   - Node.js and yarn installed on your system.
+     (if you have node and you dont have yarn simply type
+     ```
+     npm install -g yarn
+     ```
+     )
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+2. **Clone or Download the Project:**
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+   - Obtain the project code from github by cloning or downloading the zip file.
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+3. **Install Dependencies:**
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+   - Navigate to the project directory in your terminal and run:
 
-## Learn More
+     ```bash
+      yarn install
+     ```
 
-To learn more about Next.js, take a look at the following resources:
+**Running the Application**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. **Start the Development Server:**
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+   - In your terminal, run:
 
-## Deploy on Vercel
+     ```bash
+     # yarn dev
+     ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+   - This will start the development server, typically running at `http://localhost:3000`.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+2. **Open the Application:**
+   - Open the provided URL (`http://localhost:3000`) in your web browser.
+
+## Key Features
+
+- **Coin Animation:** Coins are animated using `useSpring` from `@react-spring/web`, creating a smooth and engaging experience.
+- **Point System:** Users earn points for collecting coins.
+- **Upgrade System:** Users can spend points to buy speed boosts (reducing the time between coin generation) and additional coin slots (increasing the maximum number of coins on screen).
+- **Toast Notifications:** The `useToast` hook is used to display feedback messages to users, such as successful upgrades or insufficient points.
+- **Local Storage:** Game state (points, speed, and max coins) is saved to and loaded from local storage for persistence.
+- **Responsive Design:** The application adjusts its layout based on screen size using `useEffect` for a pleasant experience on various devices.
+- **Drawer Menu:** A visually appealing bottom drawer provides access to upgrade options. The drawer animation is handled by `useSpring`.
+- **Interactive Elements:** Users can tap the screen to generate coins and interact with the drawer menu for upgrades.
+
+## Code Breakdown
+
+**CoinAnimation.tsx**
+
+- **Imports:**
+
+  - `debounce` from `lodash` is used for debounced saving of game state to localStorage.
+  - `useSpring` and `animated` from `@react-spring/web` are used for animation.
+  - `useState` and `useEffect` from React for state management and side effects.
+  - `Icon` from `@iconify/react` for displaying icons.
+  - `useToast` from `@/components/Toast/ToastContext` for toast notifications.
+
+- **Coin Interface:**
+
+  - Defines an interface `CoinProps` to type coins with properties `x` (horizontal position), `y` (vertical position), and `id` (unique identifier).
+
+- **Coin Component:**
+
+  - Takes `x` and `y` props as input.
+  - Uses `useSpring` to animate the coin's position from off-screen (`top: -50px`) to the provided `y` coordinate.
+  - Renders an `animated.div` with the animated style and a coin icon (`🪙`).
+
+- **CoinAnimation Function Component:**
+
+  - Manages the game state:
+    - `totalPoints`: Number of points earned (default 0).
+    - `maxCoins`: Maximum number of coins allowed on screen (default 100).
+    - `rechargingSpeed`: Time between coin generation in milliseconds (default 15000).
+    - `coins`: Array of coin objects with `x`, `y`, and `id` properties.
+    - `screenDimensions`: Object containing `width` and `height` of the screen (initially 0, updated on resize).
+    - `isRemovingCoins`: Boolean flag indicating whether coins are currently being removed (initially false).
+    - `isDrawerOpen`: Boolean flag indicating whether the upgrade drawer is open (initially false).
+
+- **Handle Drawer Functions:**
+
+  - `handleOpenDrawer`: Opens the upgrade drawer (sets `isDrawerOpen` to true).
+  - `handleCloseDrawer`: Closes the upgrade drawer (sets `isDrawerOpen` to false).

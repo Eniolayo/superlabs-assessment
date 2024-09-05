@@ -1,115 +1,182 @@
-import Image from "next/image";
-import localFont from "next/font/local";
+import { Icon } from "@iconify/react";
+import React, { useState } from "react";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+import BottomDrawer from "@/components/BottomDrawer";
+import Coin, { CoinProps } from "@/components/Coin";
+import { useToast } from "@/components/Toast/ToastContext";
+import { useCoinManagement } from "@/utils/useCoinManagement";
+import { useScreenDimensions } from "@/utils/useScreenDimensions";
 
-export default function Home() {
+function CoinAnimation() {
+  const {
+    coins,
+    setCoins,
+    isRemovingCoins,
+    setIsRemovingCoins,
+    totalPoints,
+    setTotalPoints,
+    maxCoins,
+    setMaxCoins,
+    rechargingSpeed,
+    setRechargingSpeed,
+  } = useCoinManagement();
+
+  const screenDimensions = useScreenDimensions();
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { addToast } = useToast();
+
+  const handleOpenDrawer = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsDrawerOpen(true);
+  };
+  const handleCloseDrawer = () => setIsDrawerOpen(false);
+  const coinSize = 32;
+  const padding = {
+    inline: 20,
+    block: 20,
+  };
+
+  const buySpeedBoost = () => {
+    const cost = 10; // Define the cost in points
+    const speedReduction = 500; // Define how much speed to reduce (1 second)
+    if (totalPoints >= cost && rechargingSpeed > speedReduction) {
+      setTotalPoints(prevPoints => prevPoints - cost);
+      setRechargingSpeed(prevSpeed => prevSpeed - speedReduction);
+      addToast({
+        message: "Speed Boost Activated! 🚀 Charge speed increased!",
+        type: "success",
+      });
+    } else {
+      addToast({
+        message: "Not enough points or speed cannot be reduced further.",
+        type: "error",
+      });
+    }
+  };
+  // Function to buy more max coins using points
+  const buyMoreCoins = () => {
+    const cost = 20; // Cost per additional coin
+    if (totalPoints >= cost) {
+      setTotalPoints(prevPoints => prevPoints - cost);
+      setMaxCoins(prevMaxCoins => prevMaxCoins + 25);
+      addToast({
+        message: "Coins Acquired! 🪙 More slots available!",
+        type: "success",
+      });
+    } else {
+      addToast({
+        message: "Not enough points.",
+        type: "error",
+      });
+    }
+  };
+  const handleTap = () => {
+    if (coins.length < maxCoins) {
+      const newCoin: CoinProps = {
+        id: Date.now(),
+        x:
+          padding.inline +
+          Math.random() *
+            (screenDimensions.width - coinSize - 2 * padding.inline),
+        y:
+          padding.block +
+          Math.random() *
+            (screenDimensions.height - coinSize - 5 * padding.block),
+      };
+
+      // Ensure the coin doesn't go off the screen horizontally
+      newCoin.x = Math.max(
+        padding.inline,
+        Math.min(newCoin.x, screenDimensions.width - coinSize - padding.inline)
+      );
+
+      // Ensure the coin doesn't go off the screen vertically
+      newCoin.y = Math.max(
+        padding.block,
+        Math.min(newCoin.y, screenDimensions.height - coinSize - padding.block)
+      );
+
+      setCoins(prevCoins => [...prevCoins, newCoin]);
+    }
+
+    if (!isRemovingCoins) {
+      setIsRemovingCoins(false);
+    }
+
+    setTimeout(() => {
+      setIsRemovingCoins(true); // Start removing coins after user stops tapping
+    }, 1000);
+  };
+
   return (
     <div
-      className={`${geistSans.variable} ${geistMono.variable} grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]`}
+      className="relative flex h-screen w-full touch-none items-center justify-center bg-gradient-to-t from-[#4A148C] to-[#E040FB] text-white"
+      onClick={handleTap}
     >
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              src/pages/index.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+      {coins.map(coin => (
+        <Coin key={coin.id} x={coin.x} y={coin.y} id={coin.id} />
+      ))}
+      <span
+        className="absolute cursor-pointer text-5xl font-semibold"
+        style={{
+          userSelect: "none",
+        }}
+      >
+        Tap anywhere
+      </span>
+      <div className="absolute inset-x-4 bottom-2 z-50 flex items-center justify-between">
+        <div
+          onClick={e => e.stopPropagation()}
+          className="flex w-fit items-end rounded border border-white/40 px-1 text-center text-sm"
+        >
+          <p
+            className=""
+            style={{
+              userSelect: "none",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <span className="mx-auto block">🪙</span>
+            <span className="font-semibold">Coins:</span> {coins.length} /{" "}
+            {maxCoins}
+          </p>
+          <span className="mx-1 block h-full w-px bg-white/40" />
+          <p
+            className=""
+            style={{
+              userSelect: "none",
+            }}
           >
-            Read our docs
-          </a>
+            <Icon icon="fxemoji:bolt" className="mx-auto block" />
+            <span className="font-semibold">Charge:</span>{" "}
+            {rechargingSpeed / 1000}s
+          </p>
+          <span className="mx-1 block h-full w-px bg-white/40" />
+          <p
+            className=" "
+            style={{
+              userSelect: "none",
+            }}
+          >
+            <Icon icon="mdi:trophy" className="mx-auto block text-[#ffb636]" />
+            <span className="font-semibold">Total Points:</span> {totalPoints}
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <button onClick={handleOpenDrawer}>
+          <Icon
+            icon="fa-solid:rocket"
+            className="mx-auto block text-[#ffb636]"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=default-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          Boost
+        </button>
+      </div>
+      <BottomDrawer
+        isOpen={isDrawerOpen}
+        onClose={handleCloseDrawer}
+        buySpeedBoost={buySpeedBoost}
+        buyMoreCoins={buyMoreCoins}
+      />
     </div>
   );
 }
+
+export default CoinAnimation;
